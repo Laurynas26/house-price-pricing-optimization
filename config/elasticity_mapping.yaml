@@ -1,0 +1,128 @@
+# PROPERTY SEGMENTATION ELASTICITY MAPPING (for analysis, not simulation)
+#
+# This file maps property clusters (0-7) to elasticity tiers.
+# PURPOSE: Used for segment-level validation and analysis only.
+#
+# IMPORTANT DISTINCTION:
+#   - Property elasticity (here): For segmenting real Funda properties by price level
+#   - Buyer elasticity (separate): Defined in config/buyer_archetypes.yaml for simulation behavior
+#
+# In simulation, buyers use their own elasticity (from archetypes).
+# Properties are valued using price prediction model, clustered here for analysis.
+#
+elasticity_mapping:
+  0:
+    bedrooms_mean: 3.0265848670756648
+    cluster_id: 0
+    count_listings: 489
+    description: 25-50th percentile (mid-market, balanced)
+    elasticity: -0.8
+    luxury_score_mean: 0.012269938650306749
+    price_per_m2_median: 7352.941176470588
+    price_percentile: 25.0
+    reasoning: Percentile 25.0% of Amsterdam market -> mid_market tier (elasticity
+      -0.8)
+    size_median: 96.0
+    tier: mid_market
+  1:
+    bedrooms_mean: 1.0
+    cluster_id: 1
+    count_listings: 775
+    description: 50-80th percentile (mid-to-upper market, moderate elasticity)
+    elasticity: -0.65
+    luxury_score_mean: 0.0
+    price_per_m2_median: 8928.57142857143
+    price_percentile: 75.0
+    reasoning: Percentile 75.0% of Amsterdam market -> luxury_mid tier (elasticity
+      -0.65)
+    size_median: 49.0
+    tier: luxury_mid
+  2:
+    bedrooms_mean: 1.9956597222222223
+    cluster_id: 2
+    count_listings: 1152
+    description: 50-80th percentile (mid-to-upper market, moderate elasticity)
+    elasticity: -0.65
+    luxury_score_mean: 0.0
+    price_per_m2_median: 8333.333333333334
+    price_percentile: 50.0
+    reasoning: Percentile 50.0% of Amsterdam market -> luxury_mid tier (elasticity
+      -0.65)
+    size_median: 69.0
+    tier: luxury_mid
+  3:
+    bedrooms_mean: 3.954081632653061
+    cluster_id: 3
+    count_listings: 196
+    description: 50-80th percentile (mid-to-upper market, moderate elasticity)
+    elasticity: -0.65
+    luxury_score_mean: 0.30357142857142855
+    price_per_m2_median: 8374.496143898972
+    price_percentile: 62.5
+    reasoning: Percentile 62.5% of Amsterdam market -> luxury_mid tier (elasticity
+      -0.65)
+    size_median: 155.0
+    tier: luxury_mid
+  4:
+    bedrooms_mean: 2.3209876543209877
+    cluster_id: 4
+    count_listings: 567
+    description: 5-25th percentile (lower-mid, price-conscious)
+    elasticity: -0.95
+    luxury_score_mean: 0.9929453262786596
+    price_per_m2_median: 6225.961538461538
+    price_percentile: 12.5
+    reasoning: Percentile 12.5% of Amsterdam market -> lower_mid tier (elasticity
+      -0.95)
+    size_median: 89.0
+    tier: lower_mid
+  5:
+    bedrooms_mean: 3.795918367346939
+    cluster_id: 5
+    count_listings: 49
+    description: Top 1% (ultra-luxury, affluent buyers, price-insensitive)
+    elasticity: -0.35
+    luxury_score_mean: 2.3877551020408165
+    price_per_m2_median: 13888.888888888889
+    price_percentile: 100.0
+    reasoning: Percentile 100.0% of Amsterdam market -> ultra_luxury tier (elasticity
+      -0.35)
+    size_median: 257.0
+    tier: ultra_luxury
+  6:
+    bedrooms_mean: 1.0
+    cluster_id: 6
+    count_listings: 417
+    description: 25-50th percentile (mid-market, balanced)
+    elasticity: -0.8
+    luxury_score_mean: 1.0371702637889688
+    price_per_m2_median: 8064.516129032258
+    price_percentile: 37.5
+    reasoning: Percentile 37.5% of Amsterdam market -> mid_market tier (elasticity
+      -0.8)
+    size_median: 50.0
+    tier: mid_market
+  7:
+    bedrooms_mean: 2.3300492610837438
+    cluster_id: 7
+    count_listings: 406
+    description: 80-99th percentile (luxury, less price-sensitive)
+    elasticity: -0.5
+    luxury_score_mean: 1.0886699507389161
+    price_per_m2_median: 9352.729581041049
+    price_percentile: 87.5
+    reasoning: Percentile 87.5% of Amsterdam market -> luxury_upper tier (elasticity
+      -0.5)
+    size_median: 96.0
+    tier: luxury_upper
+metadata:
+  elasticity_range: Kaplan-Violante (2020)
+  features:
+  - price_per_m2
+  - size_num
+  - bedrooms
+  - luxury_score
+  - nr_rooms
+  n_clusters: 8
+  research_based: true
+  source: K-Means clustering on 4,054 Amsterdam properties

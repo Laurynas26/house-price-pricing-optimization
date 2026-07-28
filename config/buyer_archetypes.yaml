@@ -1,0 +1,126 @@
+# Buyer Archetypes Configuration
+#
+# Defines 5 buyer types for the simulation.
+# Each archetype has:
+#   - Budget: purchasing power range (€)
+#   - Elasticity: price sensitivity (-0.35 = luxury/inelastic, -1.0 = budget/elastic)
+#   - Size preference: square meters (hard filter)
+#   - Location preference: city center, suburb, flexible (hard filter)
+#   - Distribution: % of buyers in simulation (must sum to 100%)
+#
+# Economic interpretation:
+#   Elasticity -0.35 (luxury): 1% price increase → 0.35% demand decrease (price-insensitive)
+#   Elasticity -1.00 (budget): 1% price increase → 1% demand decrease (price-sensitive)
+#
+
+buyer_archetypes:
+
+  luxury_central:
+    name: "Luxury Central"
+    description: "High-income buyers seeking premium apartments in Amsterdam city center"
+    budget_min: 800000
+    budget_max: null  # No upper limit
+    elasticity: -0.35
+    size_preference:
+      min_sqm: 30
+      max_sqm: 50
+      interpretation: "Small, high price/m² properties in central locations"
+    location_preference:
+      preferred: ["city_center", "grachtengordel", "canal_belt"]
+      excluded: ["suburb", "outskirts"]
+      hard_filter: true
+    distribution_percent: 12
+    example_property: "Penthouse, 40m², Grachtengordel, €500k"
+    buyer_behavior: "Willing to pay 15% above valuation; price is not a constraint"
+
+  luxury_spacious:
+    name: "Luxury Spacious"
+    description: "High-income buyers seeking villas and large homes in suburban Amsterdam"
+    budget_min: 800000
+    budget_max: null
+    elasticity: -0.35
+    size_preference:
+      min_sqm: 150
+      max_sqm: null  # Large properties
+      interpretation: "Large, space-sensitive properties in suburb/Gooi"
+    location_preference:
+      preferred: ["suburb", "gooi", "periphery"]
+      excluded: ["city_center"]
+      hard_filter: true
+    distribution_percent: 18
+    example_property: "Villa, 250m², Gooi, €1.2M"
+    buyer_behavior: "Willing to pay 15% above valuation; prioritizes space and exclusivity"
+
+  mid_urban:
+    name: "Mid-Urban"
+    description: "Young professionals and couples seeking apartments near city/metro"
+    budget_min: 400000
+    budget_max: 600000
+    elasticity: -0.70
+    size_preference:
+      min_sqm: 60
+      max_sqm: 100
+      interpretation: "Medium apartments, good location over space"
+    location_preference:
+      preferred: ["city", "canal", "near_metro", "de_pijp", "oud_west"]
+      excluded: []
+      hard_filter: true
+    distribution_percent: 30
+    example_property: "2-bedroom apartment, 75m², De Pijp, €500k"
+    buyer_behavior: "Willing to pay 8% above valuation; balance of location and price"
+
+  mid_suburban:
+    name: "Mid-Suburban"
+    description: "Families seeking space and affordability in suburbs"
+    budget_min: 400000
+    budget_max: 600000
+    elasticity: -0.70
+    size_preference:
+      min_sqm: 100
+      max_sqm: 150
+      interpretation: "Medium-large homes, space for families"
+    location_preference:
+      preferred: ["suburb", "family_neighborhoods"]
+      excluded: ["city_center"]
+      hard_filter: true
+    distribution_percent: 25
+    example_property: "3-bedroom house, 120m², Amstelveen, €520k"
+    buyer_behavior: "Willing to pay 8% above valuation; prioritizes space and schools"
+
+  budget:
+    name: "Budget"
+    description: "First-time buyers and investors seeking affordable housing"
+    budget_min: 150000
+    budget_max: 300000
+    elasticity: -1.00
+    size_preference:
+      min_sqm: 0
+      max_sqm: null
+      interpretation: "Any size; price is primary constraint"
+    location_preference:
+      preferred: []  # Flexible
+      excluded: []
+      hard_filter: false
+    distribution_percent: 15
+    example_property: "Studio, 35m², Noord, €180k"
+    buyer_behavior: "Only bids at or below valuation; highly price-sensitive; will negotiate"
+
+metadata:
+  total_distribution_percent: 100
+  elasticity_range: "-0.35 (luxury/inelastic) to -1.00 (budget/elastic)"
+  source: "Designed based on Amsterdam housing market archetypes and elasticity theory"
+  usage: "Load in Week 1. Generate buyers from these archetypes during simulation (Week 3+)"
+  notes: |
+    Hard filters mean: a buyer will ONLY consider properties matching their preferences.
+    Soft filters (budget only) mean: a buyer is flexible and will consider any property.
+
+    Elasticity-derived tolerance band:
+      - Luxury (-0.35): tolerance_band = 0.15 (will bid up to 15% above valuation)
+      - Mid-market (-0.70): tolerance_band = 0.08 (will bid up to 8% above valuation)
+      - Budget (-1.00): tolerance_band = 0.00 (will only bid at or below valuation)
+
+    During simulation (Week 3):
+      1. Each day, generate N buyers sampled from these archetypes (using distribution_percent)
+      2. Each buyer filters properties by hard preferences
+      3. Each buyer submits sealed bid based on valuation + tolerance_band
+      4. Highest bid wins property
