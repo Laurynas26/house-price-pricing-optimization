@@ -1,126 +1,299 @@
-# Buyer Archetypes Configuration
+# Buyer Archetypes Configuration (Data-Driven from K-Means clustering)
 #
-# Defines 5 buyer types for the simulation.
-# Each archetype has:
-#   - Budget: purchasing power range (€)
-#   - Elasticity: price sensitivity (-0.35 = luxury/inelastic, -1.0 = budget/elastic)
-#   - Size preference: square meters (hard filter)
-#   - Location preference: city center, suburb, flexible (hard filter)
-#   - Distribution: % of buyers in simulation (must sum to 100%)
+# 8 buyer archetypes identified from clustering 4,054 Amsterdam properties on:
+# - Total price, size (m²), price per m²
 #
-# Economic interpretation:
-#   Elasticity -0.35 (luxury): 1% price increase → 0.35% demand decrease (price-insensitive)
-#   Elasticity -1.00 (budget): 1% price increase → 1% demand decrease (price-sensitive)
+# Each archetype represents a distinct buyer profile with:
+#   - Primary motivation (what they optimize for)
+#   - Budget range (typical purchasing power)
+#   - Elasticity (price sensitivity, -0.25 to -1.0)
+#   - Size & location preferences (hard filters)
+#   - Distribution (% of market)
+#
+# Elasticity interpretation:
+#   -0.25 (ultra-luxury): 1% price increase → 0.25% demand decrease (price-insensitive)
+#   -0.70 (mid-market):   1% price increase → 0.70% demand decrease (moderate)
+#   -1.00 (budget):       1% price increase → 1.00% demand decrease (price-sensitive)
 #
 
 buyer_archetypes:
 
-  luxury_central:
-    name: "Luxury Central"
-    description: "High-income buyers seeking premium apartments in Amsterdam city center"
-    budget_min: 800000
-    budget_max: null  # No upper limit
-    elasticity: -0.35
-    size_preference:
-      min_sqm: 30
-      max_sqm: 50
-      interpretation: "Small, high price/m² properties in central locations"
-    location_preference:
-      preferred: ["city_center", "grachtengordel", "canal_belt"]
-      excluded: ["suburb", "outskirts"]
-      hard_filter: true
-    distribution_percent: 12
-    example_property: "Penthouse, 40m², Grachtengordel, €500k"
-    buyer_behavior: "Willing to pay 15% above valuation; price is not a constraint"
+  space_seekers_suburban:
+    name: "Space-Seekers Suburban"
+    description: "Budget-conscious buyers prioritizing space over location; willing to trade central location for larger homes and lower cost per m²"
 
-  luxury_spacious:
-    name: "Luxury Spacious"
-    description: "High-income buyers seeking villas and large homes in suburban Amsterdam"
-    budget_min: 800000
-    budget_max: null
-    elasticity: -0.35
-    size_preference:
-      min_sqm: 150
-      max_sqm: null  # Large properties
-      interpretation: "Large, space-sensitive properties in suburb/Gooi"
-    location_preference:
-      preferred: ["suburb", "gooi", "periphery"]
-      excluded: ["city_center"]
-      hard_filter: true
-    distribution_percent: 18
-    example_property: "Villa, 250m², Gooi, €1.2M"
-    buyer_behavior: "Willing to pay 15% above valuation; prioritizes space and exclusivity"
+    budget_min: 349000
+    budget_max: 475000
+    budget_description: "€349k-475k (IQR from data)"
 
-  mid_urban:
-    name: "Mid-Urban"
-    description: "Young professionals and couples seeking apartments near city/metro"
-    budget_min: 400000
-    budget_max: 600000
-    elasticity: -0.70
-    size_preference:
-      min_sqm: 60
-      max_sqm: 100
-      interpretation: "Medium apartments, good location over space"
-    location_preference:
-      preferred: ["city", "canal", "near_metro", "de_pijp", "oud_west"]
-      excluded: []
-      hard_filter: true
-    distribution_percent: 30
-    example_property: "2-bedroom apartment, 75m², De Pijp, €500k"
-    buyer_behavior: "Willing to pay 8% above valuation; balance of location and price"
-
-  mid_suburban:
-    name: "Mid-Suburban"
-    description: "Families seeking space and affordability in suburbs"
-    budget_min: 400000
-    budget_max: 600000
-    elasticity: -0.70
-    size_preference:
-      min_sqm: 100
-      max_sqm: 150
-      interpretation: "Medium-large homes, space for families"
-    location_preference:
-      preferred: ["suburb", "family_neighborhoods"]
-      excluded: ["city_center"]
-      hard_filter: true
-    distribution_percent: 25
-    example_property: "3-bedroom house, 120m², Amstelveen, €520k"
-    buyer_behavior: "Willing to pay 8% above valuation; prioritizes space and schools"
-
-  budget:
-    name: "Budget"
-    description: "First-time buyers and investors seeking affordable housing"
-    budget_min: 150000
-    budget_max: 300000
     elasticity: -1.00
+    elasticity_reasoning: "Most price-sensitive: low price/m² (€5.1k) signals suburban, budget-conscious buyers who react strongly to price changes"
+
     size_preference:
-      min_sqm: 0
-      max_sqm: null
-      interpretation: "Any size; price is primary constraint"
+      min_sqm: 69
+      max_sqm: 90
+      interpretation: "Medium to large properties; space is priority"
+      hard_filter: true
+
     location_preference:
-      preferred: []  # Flexible
+      preferred: ["suburb", "periphery", "amstelveen", "diemen", "weesp"]
+      excluded: ["city_center", "grachtengordel", "canal_belt"]
+      hard_filter: true
+      reasoning: "Suburban areas where price/m² is lowest; willing to commute"
+
+    distribution_percent: 15.6
+    count_properties: 631
+
+    example_property: "3-bedroom house, 80m², Amstelveen, €400k"
+    buyer_profile: "Family or couple seeking value; space-driven decision-making; price-sensitive to overages"
+
+    tolerance_band_percent: 0
+    tolerance_band_reasoning: "Budget archetype: only bids at or below valuation (elasticity -1.0)"
+
+  location_seekers_central:
+    name: "Location-Seekers Central"
+    description: "Price-insensitive buyers prioritizing central Amsterdam location; willing to trade space for location, accept high price/m²"
+
+    budget_min: 400000
+    budget_max: 552500
+    budget_description: "€400k-552.5k (IQR from data)"
+
+    elasticity: -0.35
+    elasticity_reasoning: "Location-premium buyers: high price/m² (€9.4k) indicates they value location over price; willing to pay for central location even with tight budget"
+
+    size_preference:
+      min_sqm: 40
+      max_sqm: 58
+      interpretation: "Small properties; location matters more than size"
+      hard_filter: true
+
+    location_preference:
+      preferred: ["city_center", "grachtengordel", "canal_belt", "jordaan", "de_pijp"]
+      excluded: ["suburb", "periphery"]
+      hard_filter: true
+      reasoning: "Central Amsterdam only; willing to accept small space for premium location"
+
+    distribution_percent: 22.3
+    count_properties: 903
+
+    example_property: "Studio or 1-bedroom, 49m², Grachtengordel, €450k"
+    buyer_profile: "Young professional, single/couple, prioritizes walkability and lifestyle; career/social life centered in city; accepts small space as trade-off"
+
+    tolerance_band_percent: 15
+    tolerance_band_reasoning: "Luxury central buyer: willing to pay 15% over valuation for preferred location (elasticity -0.35)"
+
+  balanced_buyers:
+    name: "Balanced Buyers"
+    description: "Pragmatic buyers seeking compromise between location and space; moderate price sensitivity; mixed preferences"
+
+    budget_min: 400000
+    budget_max: 552500
+    budget_description: "€400k-552.5k (IQR from data)"
+
+    elasticity: -0.70
+    elasticity_reasoning: "Moderate elasticity: medium price/m² (€7.9k) suggests balanced approach; neither location nor budget-driven, but accepting of trade-offs"
+
+    size_preference:
+      min_sqm: 53
+      max_sqm: 72
+      interpretation: "Medium properties; flexible on both size and location"
+      hard_filter: false
+
+    location_preference:
+      preferred: ["city", "canal", "near_metro"]
       excluded: []
       hard_filter: false
-    distribution_percent: 15
-    example_property: "Studio, 35m², Noord, €180k"
-    buyer_behavior: "Only bids at or below valuation; highly price-sensitive; will negotiate"
+      reasoning: "Flexible across Amsterdam; willing to consider both central and peripheral neighborhoods depending on property quality"
+
+    distribution_percent: 29.0
+    count_properties: 1175
+
+    example_property: "1-2 bedroom apartment, 62m², Oud-West, €485k"
+    buyer_profile: "Young professional/early family; balanced priorities; open to different neighborhoods; moderate price sensitivity"
+
+    tolerance_band_percent: 8
+    tolerance_band_reasoning: "Moderate buyer: willing to pay 8% over valuation for acceptable property (elasticity -0.70)"
+
+  family_suburban:
+    name: "Family Suburban"
+    description: "Family-oriented buyers with higher budget; prioritize space and schools; suburban neighborhoods; moderate price sensitivity"
+
+    budget_min: 652050
+    budget_max: 860000
+    budget_description: "€652k-860k (IQR from data)"
+
+    elasticity: -0.80
+    elasticity_reasoning: "Moderately price-sensitive: need larger homes (families) but value suburban affordability; low price/m² (€7.0k) enables space"
+
+    size_preference:
+      min_sqm: 96
+      max_sqm: 120
+      interpretation: "Large properties; family-sized (3+ bedrooms)"
+      hard_filter: true
+
+    location_preference:
+      preferred: ["suburb", "family_neighborhoods", "schools", "parks"]
+      excluded: ["city_center"]
+      hard_filter: true
+      reasoning: "Suburban areas with good schools and family amenities; community-driven"
+
+    distribution_percent: 12.7
+    count_properties: 513
+
+    example_property: "3-4 bedroom house, 106m², Buitenveldert, €750k"
+    buyer_profile: "Family with children; prioritizes schools, parks, space; suburban lifestyle; moderately price-conscious due to larger budgets"
+
+    tolerance_band_percent: 10
+    tolerance_band_reasoning: "Family buyer: willing to pay 10% over valuation for suitable family property (elasticity -0.80)"
+
+  urban_professionals:
+    name: "Urban Professionals"
+    description: "Career-focused, higher income buyers; value central location and proximity to work; less price-sensitive; willing to invest in urban lifestyle"
+
+    budget_min: 790000
+    budget_max: 1025000
+    budget_description: "€790k-1,025k (IQR from data)"
+
+    elasticity: -0.35
+    elasticity_reasoning: "Location-premium buyers: high price/m² (€9.5k) and higher total budget indicates career/lifestyle investment; less price-sensitive"
+
+    size_preference:
+      min_sqm: 81
+      max_sqm: 107
+      interpretation: "Medium properties; balance of space and location"
+      hard_filter: false
+
+    location_preference:
+      preferred: ["city_center", "canal_belt", "de_pijp", "oud_west", "jordaan"]
+      excluded: []
+      hard_filter: true
+      reasoning: "Central location essential for career/lifestyle; willing to invest in premium neighborhoods"
+
+    distribution_percent: 13.2
+    count_properties: 537
+
+    example_property: "2-bedroom apartment, 92m², De Pijp, €895k"
+    buyer_profile: "Professional (age 35-50), couple/family; career in Amsterdam city center; values lifestyle, restaurants, culture; less price-sensitive"
+
+    tolerance_band_percent: 12
+    tolerance_band_reasoning: "Urban professional: willing to pay 12% over valuation for central location (elasticity -0.35)"
+
+  luxury_large:
+    name: "Luxury Large"
+    description: "Affluent buyers; seeking larger, high-quality homes; central location; moderate luxury preference; some price sensitivity remains"
+
+    budget_min: 1275000
+    budget_max: 1650000
+    budget_description: "€1.275M-1.65M (IQR from data)"
+
+    elasticity: -0.45
+    elasticity_reasoning: "Moderately inelastic: high price/m² (€9.0k) and significant budget indicates luxury aspiration; still somewhat price-conscious"
+
+    size_preference:
+      min_sqm: 142
+      max_sqm: 181
+      interpretation: "Large properties; space and quality both important"
+      hard_filter: false
+
+    location_preference:
+      preferred: ["city", "canal_belt", "grachtengordel", "premium_neighborhoods"]
+      excluded: []
+      hard_filter: false
+      reasoning: "Central and premium neighborhoods; quality and prestige matter"
+
+    distribution_percent: 5.5
+    count_properties: 223
+
+    example_property: "3-4 bedroom townhouse, 156m², Prinsengracht, €1.45M"
+    buyer_profile: "Wealthy professional/entrepreneur (age 45-60); seeks spacious luxury home; central Amsterdam; quality and location prioritized"
+
+    tolerance_band_percent: 14
+    tolerance_band_reasoning: "Luxury buyer: willing to pay 14% over valuation for premium property (elasticity -0.45)"
+
+  luxury_premium:
+    name: "Luxury Premium"
+    description: "Very affluent buyers; ultra-premium properties; location and exclusivity paramount; minimal price sensitivity"
+
+    budget_min: 2350000
+    budget_max: 3075000
+    budget_description: "€2.35M-3.075M (IQR from data)"
+
+    elasticity: -0.35
+    elasticity_reasoning: "Very inelastic: very high price/m² (€13k) indicates ultra-premium properties in exclusive areas; wealth-driven, not price-driven"
+
+    size_preference:
+      min_sqm: 181
+      max_sqm: 238
+      interpretation: "Very large, spacious properties; size is luxury indicator"
+      hard_filter: false
+
+    location_preference:
+      preferred: ["grachtengordel", "canal_palaces", "jordaan", "city_center", "exclusive"]
+      excluded: []
+      hard_filter: false
+      reasoning: "Only the most exclusive, prestigious neighborhoods; historical significance and prestige essential"
+
+    distribution_percent: 1.2
+    count_properties: 50
+
+    example_property: "4-5 bedroom palace, 210m², Herengracht, €2.66M"
+    buyer_profile: "Very wealthy individual/family (age 50+); established success; seeks iconic, prestigious properties; price not a concern; exclusivity paramount"
+
+    tolerance_band_percent: 20
+    tolerance_band_reasoning: "Ultra-luxury buyer: willing to pay 20% over valuation for exclusive property (elasticity -0.35)"
+
+  ultra_luxury_estate:
+    name: "Ultra-Luxury Estate"
+    description: "Ultra-high net worth buyers; seeking trophy properties; penthouses, mansions, estates; location/exclusivity absolute priority; price-insensitive"
+
+    budget_min: 4412500
+    budget_max: 6250000
+    budget_description: "€4.4M-6.25M (IQR from data)"
+
+    elasticity: -0.25
+    elasticity_reasoning: "Extremely inelastic: extreme price/m² (€15.9k) indicates trophy/prestige purchases; wealth-driven, not price-driven at all"
+
+    size_preference:
+      min_sqm: 284
+      max_sqm: 385
+      interpretation: "Very large estates; size indicates prestige and exclusivity"
+      hard_filter: false
+
+    location_preference:
+      preferred: ["grachtengordel", "canal_palaces", "villas", "estates", "most_exclusive"]
+      excluded: []
+      hard_filter: false
+      reasoning: "Only the most exclusive properties; historical significance, iconic locations, prestige; international clientele"
+
+    distribution_percent: 0.5
+    count_properties: 22
+
+    example_property: "Penthouse or mansion, 352m², Herengracht Palace, €4.98M"
+    buyer_profile: "Ultra-high net worth individual/family; international client; trophy property investment; exclusivity and prestige are sole drivers; price irrelevant"
+
+    tolerance_band_percent: 25
+    tolerance_band_reasoning: "Ultra-luxury buyer: willing to pay 25% over valuation for iconic property (elasticity -0.25)"
 
 metadata:
-  total_distribution_percent: 100
-  elasticity_range: "-0.35 (luxury/inelastic) to -1.00 (budget/elastic)"
-  source: "Designed based on Amsterdam housing market archetypes and elasticity theory"
-  usage: "Load in Week 1. Generate buyers from these archetypes during simulation (Week 3+)"
+  total_distribution_percent: 100.0
+  total_properties: 4054
+  source: "K-Means clustering on (total_price, size_num, price_per_m2) from 4,054 Funda properties"
+  clustering_approach: "Data-driven segmentation based on observed buyer-property combinations"
+  elasticity_range: "-0.25 (ultra-wealthy/inelastic) to -1.00 (budget/elastic)"
+
   notes: |
-    Hard filters mean: a buyer will ONLY consider properties matching their preferences.
-    Soft filters (budget only) mean: a buyer is flexible and will consider any property.
+    These archetypes were discovered through K-Means clustering and validated against:
+    - Actual property distributions in Amsterdam market
+    - Economic theory of price elasticity of demand
+    - Buyer motivation framework (space vs. location vs. luxury)
 
-    Elasticity-derived tolerance band:
-      - Luxury (-0.35): tolerance_band = 0.15 (will bid up to 15% above valuation)
-      - Mid-market (-0.70): tolerance_band = 0.08 (will bid up to 8% above valuation)
-      - Budget (-1.00): tolerance_band = 0.00 (will only bid at or below valuation)
+    Key insight: Buyer elasticity correlates with price/m² (location premium).
+    High price/m² buyers are location-driven and price-insensitive.
+    Low price/m² buyers are space/budget-driven and price-sensitive.
 
-    During simulation (Week 3):
-      1. Each day, generate N buyers sampled from these archetypes (using distribution_percent)
-      2. Each buyer filters properties by hard preferences
-      3. Each buyer submits sealed bid based on valuation + tolerance_band
-      4. Highest bid wins property
+    During simulation (Week 3+):
+    1. Each day, generate N buyers sampled from these archetypes (using distribution_percent)
+    2. Each buyer filters properties matching their hard preferences
+    3. Each buyer submits sealed bid based on: valuation + (elasticity-derived tolerance_band)
+    4. Highest bid wins property
+    5. Market outcomes (prices, time-to-sale) reflect elasticity differences across segments
