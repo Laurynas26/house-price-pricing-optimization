@@ -1,168 +1,155 @@
 # House Price Pricing Optimization
 
-Simulation-based pricing optimization system for Amsterdam residential properties.
+**A sensitivity tool for pricing under unknown elasticity.** Not an elasticity
+estimation project — the distinction is the point.
 
-**Goal:** Build an agent-based market simulator to optimize property prices under demand elasticity constraints.
+Elasticity cannot be estimated from Funda listing data. Transaction prices are absent,
+and the listing date was never scraped, so neither time-on-market nor sale outcomes
+exist. Elasticity is therefore an input taken from the literature, and a simulation
+that propagates an assumed elasticity cannot discover anything about it.
 
-**Scope:** Aug 1 - Dec 15, 2026 (5 months, ~145 hours)
+So this project asks a different question:
 
-## Project Overview
+> What does optimal pricing look like under assumed elasticity, and how much does the
+> answer depend on the assumption?
 
-This project extends the house price prediction work with:
-1. **Demand modeling** - Elasticity curves based on buyer type (luxury, mid, budget) — NOT property type
-2. **Market simulation** - Agent-based model with 5 buyer archetypes, 4,054 real properties, and market dynamics
-3. **Pricing optimization** - Mixed Integer Program to find optimal prices
-4. **Strategy comparison** - Revenue-max vs. speed-max vs. balanced approaches
+If the optimal price barely moves across the plausible range, pricing is robust to the
+uncertainty. If it moves a lot, the sweep has quantified what the missing Kadaster
+transaction data is worth.
 
-**Key insight:** Elasticity is a buyer attribute (price sensitivity), not a property attribute. Luxury buyers are less price-sensitive regardless of property type.
+Extends [house_price_prediction_project](../house_price_prediction_project), which
+supplies both the property pool and — more importantly — the **measured error profile**
+that gives this simulation a defensible uncertainty structure.
+
+## Results
+
+**Optimal pricing inverts at the top of the market.** The bottom four price quintiles
+should be listed *above* the model's estimated value (1.06–1.09×); the top quintile
+*below* it (0.92×). Robust across market thickness — 98% of Q1–Q4 cells and 93% of Q5
+cells, over five arrival rates and three elasticities.
+
+The mechanism: at the bottom, the binding constraint is willingness, so able buyers are
+plentiful and price can be pushed up. At the top, the binding constraint is budget, the
+buyer pool is thin, and the trade-off reverses. The top-end discount tracks how thin
+the pool is — 0.74× at 80 arrivals/day, 0.99× at 1000.
+
+| finding | value |
+|---|---|
+| Elasticity moves optimal price by | **3–14%**, conditional on market thickness |
+| Speed costs | **10.2% of price** to sell ~7 days faster |
+| CBS wealth explains top-quintile clearing | 0.685 → **0.839** (2.5× derived reaches only 0.888) |
+| Time costs (discount, VvE) change the decision | **never** — identical prices in all 15 cells |
+
+Two of these are negative results and they are kept as results. Market elasticity does
+not pin down optimal pricing: two markets with identical measured elasticity but
+different thickness give materially different answers. And in a fast market, revenue-max
+*is* the right strategy — there is nothing to trade away.
+
+## Method
+
+**Sweep before you invest.** Any parameter about to receive expensive derivation gets
+swept crudely first, to find out whether the answer depends on it. Applied to the
+project's own construction choices, not only to elasticity. It has changed decisions in
+both directions — the CBS equity derivation was justified by a sweep showing it
+mattered; refinement of carrying cost was abandoned because a sweep showed it did not.
+
+**Derived vs assumed, labelled throughout.**
+
+```
+budget = LTI capacity(income) + equity(income) − kosten koper(price, FTB status)
+         └── NIBUD formula ─┘   └── CBS ────┘   └── Dutch tax policy ─────────┘
+
+preferences (size, location, trade-offs)  = ASSUMED — no revealed-preference signal exists
+elasticity                                 = ASSUMED — from literature, swept
+market thickness                           = UNIDENTIFIED — no time-on-market data, swept
+```
+
+**Elasticity is calibrated, not asserted.** The literature gives a market-level
+elasticity; a willingness-to-pay band is a different object. The WTP dispersion is
+solved for numerically so that aggregate demand exhibits the target elasticity.
+
+**Equity is derived and never tuned.** It has enough leverage that any segment could be
+made to clear by handing its buyers more of it — which would calibrate the demand side
+to reproduce the prices being explained. That the top of the market does not fully
+clear is reported as a result.
 
 ## Data
 
-- **Source:** Funda.nl listings (September 2025, Amsterdam)
-- **Size:** 4,054 properties (after cleaning)
-- **Features:** Price, size, bedrooms, luxury amenities, location, neighborhood
+- **Source:** Funda.nl listings, Amsterdam, September 2025 — 4,054 properties
+- **Location:** PC4 → stadsdeel mapping plus distance to Dam Square from polygon
+  geometry. Both independent of price, so location findings are not circular.
+- **Valuation error:** bootstrapped from 820 genuinely held-out listings in the
+  prediction project, resampled within size band (dispersion 8.7%–19.7%)
+- **Equity:** CBS StatLine 83834NED and 86160NED
 
-### Data Pipeline
+Two upstream data bugs found and corrected: `city` truncated to `"STERDAM"` (153 rows),
+and `contribution_vve_num` inflated 100× because `parse_price` strips the Dutch decimal
+comma. The VvE bug is live in the prediction project, where the column is a model
+feature — monotonic, so tree models are unaffected in accuracy, but the values are
+wrong.
 
-```
-house_price_prediction_project/
-  └── data/cache/df_preprocessed_ca6f817b.pkl (4,960 listings, 64 features)
-       ↓
-extract_clustering_features.py (this repo)
-  - Loads cached preprocessed data
-  - Computes: price_per_m2, luxury_score
-  - Selects: price_per_m2, size_num, bedrooms, luxury_score, nr_rooms, postal_code_clean
-  - Outputs: data/clustering_features.csv (4,054 clean rows)
-       ↓
-run_clustering.py (this repo)
-  - Loads clustering_features.csv
-  - Runs K-Means (8 clusters)
-  - Maps elasticity to clusters (for PROPERTY SEGMENTATION ANALYSIS, not buyer behavior)
-  - Outputs: config/elasticity_mapping.yaml
-       ↓
-Buyer Archetypes (Week 0, LOCKED)
-  - 8 data-driven archetypes from K-Means on price/size/price_per_m²
-  - 100% market coverage (4,054 properties)
-  - config/buyer_archetypes.yaml (buyer elasticity and behavior)
-       ↓
-Simulation (Weeks 3-5)
-  - Uses clustering_features.csv (for property pool valuation)
-  - Uses config/buyer_archetypes.yaml (for buyer generation and elasticity)
-  - elasticity_mapping.yaml used only for segment-level validation/analysis
+## Running it
+
+```bash
+pip install -r requirements.txt
+
+python scripts/build_property_pool.py      # 4,054 properties with price + location
+python scripts/build_pc4_geography.py      # distance to centre from the PC4 shapefile
+python scripts/derive_equity_from_cbs.py   # equity schedule from CBS StatLine
+
+python scripts/run_sweep.py                # elasticity x equity
+python scripts/sweep_equity_by_bin.py      # equity by price quintile
+python scripts/sweep_market_thickness.py   # does the elasticity result survive?
+python scripts/check_inversion_robustness.py
+python scripts/compare_strategies.py       # revenue vs speed vs balanced
 ```
 
-**Important:** elasticity_mapping.yaml is for property segmentation (analysis). Buyer elasticity is defined separately in buyer_archetypes.yaml (simulation behavior).
+Diagnostics, kept because they are the evidence for design decisions:
 
-**Files in this repo:**
-- `data/df_preprocessed_ca6f817b.pkl` - Original cached data (reference)
-- `data/clustering_features.csv` - Extracted features for clustering
-- `scripts/extract_clustering_features.py` - Feature extraction script
-- `scripts/run_clustering.py` - Clustering + elasticity mapping script
-- `config/elasticity_mapping.yaml` - Locked elasticity values
-
-## Design & Buyer Archetypes
-
-See [docs/DESIGN.md](docs/DESIGN.md) for detailed architecture, system components, elasticity flow, and locked assumptions.
-
-**8 Buyer Archetypes** (locked, data-driven from 4,054 properties):
-1. Space-Seekers Suburban (€349-475k, -1.00 elasticity, 80m²)
-2. Location-Seekers Central (€400-552k, -0.35 elasticity, 49m²)
-3. Balanced Buyers (€400-552k, -0.70 elasticity, 62m²)
-4. Family Suburban (€652-860k, -0.80 elasticity, 106m²)
-5. Urban Professionals (€790-1,025k, -0.35 elasticity, 92m²)
-6. Luxury Large (€1.275-1.65M, -0.45 elasticity, 156m²)
-7. Luxury Premium (€2.35-3.075M, -0.35 elasticity, 210m²)
-8. Ultra-Luxury Estate (€4.41-6.25M, -0.25 elasticity, 352m²)
-
-Full details: [`config/buyer_archetypes.yaml`](config/buyer_archetypes.yaml)
-
-## Architecture
-
-- **Simulation:** Agent-based market model (Property, Buyer, Seller, Market)
-- **Buyers:** 5 archetypes (Luxury Central, Luxury Spacious, Mid-Urban, Mid-Suburban, Budget) with fixed elasticity values (-0.35 to -1.0)
-- **Properties:** 4,054 real Funda listings with cluster-based segmentation (for valuation, NOT elasticity)
-- **Demand:** Elasticity determines buyer tolerance band; sealed-bid auction with preference filtering
-- **Optimizer:** PuLP + CBC solver with piecewise linear constraints (Week 6+)
-- **Validation:** Segment-level comparison (sim prices vs. real Funda by cluster), strategy outcome comparison
-
-## Timeline
-
-| Phase | Weeks | Status |
-|-------|-------|--------|
-| Foundation | 1-2 | Planning (Week 0) |
-| Simulation | 3-5 | Next |
-| Optimization | 6-8 | Q3 2026 |
-| Analysis | 9-14 | Q4 2026 |
-| Polish | 15 | Dec 2026 |
-
-## Repository Structure
-
-```
-house-price-pricing-optimization/
-├── docs/
-│   └── DESIGN.md                      (architecture, elasticity flow, assumptions)
-├── data/
-│   ├── clustering_features.csv        (4,054 properties for segmentation)
-│   ├── df_preprocessed_ca6f817b.pkl   (cached preprocessed listings, reference)
-│   └── simulation_results/
-├── config/
-│   ├── elasticity_mapping.yaml        (property cluster → segmentation tier, for analysis)
-│   └── buyer_archetypes.yaml          (buyer types → elasticity, budgets, preferences)
-├── notebooks/
-│   ├── 01_clustering.ipynb
-│   ├── 02_demand_model.ipynb
-│   ├── 03_simulation.ipynb
-│   ├── 04_optimization.ipynb
-│   └── 05_analysis.ipynb
-├── src/
-│   ├── simulation/
-│   │   ├── market.py
-│   │   ├── agents.py
-│   │   └── dynamics.py
-│   ├── optimization/
-│   │   ├── optimizer.py
-│   │   └── strategies.py
-│   ├── data/
-│   │   ├── loaders.py
-│   │   └── utils.py
-│   └── analysis/
-│       ├── validation.py
-│       └── metrics.py
-├── scripts/
-│   ├── extract_clustering_features.py
-│   ├── run_clustering.py
-│   └── run_simulation.py
-└── README.md
+```bash
+python scripts/audit_week0_state.py        # why the original archetypes were retired
+python scripts/build_segmentation.py       # clustering diagnostics
+python scripts/validate_segmentation.py    # adversarial checks on that clustering
 ```
 
-## Week 0: Planning (COMPLETE)
+## Repository
 
-✅ Elasticity research (academic-grounded values: -0.35 to -1.0)
-✅ MIP formulation (optimization approach, pseudocode ready)
-✅ Clustering features extraction (4,054 properties)
-✅ K-Means clustering (8 property segments)
-✅ Elasticity mapping to clusters (for property segmentation analysis)
-✅ Buyer archetypes (8 data-driven types, 100% market coverage, elasticity locked)
-✅ Architecture design (system components, elasticity flow, assumptions locked)
-✅ Design doc (docs/DESIGN.md)
-✅ Buyer archetypes config (config/buyer_archetypes.yaml)
+```
+config/
+  simulation.yaml        every parameter labelled DERIVED or ASSUMED
+  location_zones.yaml    PC4 -> stadsdeel, not fitted to price
+  equity_function.yaml   generated from CBS; never hand-edited
+src/
+  data/loaders.py        pool + geography join, fails loudly on a bad join
+  simulation/
+    valuation.py         V_true vs V_est, bootstrapped error
+    demand.py            budgets and willingness to pay
+    market.py            outcomes, elasticity calibration, optimizer, strategies
+scripts/                 pipeline, sweeps, diagnostics
+archive/week0/           retired artifacts + why (see its README)
+docs/DESIGN.md           full design, assumptions, limitations
+```
 
-## Week 1: Foundation (Aug 1-15)
+## Known limitations
 
-⏳ Load & validate property data (clustering_features.csv)
-⏳ Create buyer archetypes config (config/buyer_archetypes.yaml)
-⏳ Build agent class stubs (Property, Buyer, Seller, Market)
-⏳ Export property pool (4,054 pickled Property objects)
-⏳ Finalize architecture in code
+Preferences are stipulated — there is no choice data. Market thickness is unidentified
+and modulates the headline by a factor of nearly five. Attention sharing across the
+pool is crude. Valuation error is extrapolated above 312 m². The Amsterdam equity tail
+is a two-moment lognormal fit and probably understates the top. Full list in
+[docs/DESIGN.md](docs/DESIGN.md#10-known-limitations).
 
-## Blog Posts
+**Realised transaction prices are explicitly out of scope.** The asking-to-sale gap
+varies with bidder count, bidder counts are thinner for expensive properties, and none
+of it is observable in this data. This project optimizes asking price and makes no
+claim about what properties actually sell for.
 
-This project is documented across 5 blog posts:
-- **Post 10:** "What drives Airbnb/housing prices? Simulation design"
-- **Post 11:** "Estimating elasticity from market patterns"
-- **Post 12:** "Optimizing prices under uncertainty"
-- **Post 13:** "Pricing strategies: Revenue vs. speed"
-- **Post 14:** "From prediction to pricing: Lessons learned"
+## Blog posts
+
+- **Post 10** — Simulation design: what you can and cannot ask of listing data
+- **Post 11** — Building buyers from Dutch income and mortgage rules
+- **Post 12** — How much does optimal pricing depend on elasticity?
+- **Post 13** — What speed costs, and when strategy stops mattering
+- **Post 14** — From prediction to pricing: lessons learned
 
 ## License
 
