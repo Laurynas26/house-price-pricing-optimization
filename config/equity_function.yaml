@@ -1,0 +1,75 @@
+equity_by_income_decile_eur:
+  1: 275372.0
+  2: 214630.0
+  3: 222466.0
+  4: 227010.0
+  5: 224679.0
+  6: 227347.0
+  7: 241092.0
+  8: 385185.0
+  9: 582241.0
+  10: 1176096.0
+equity_national_by_income_decile_eur:
+  1: 275372.0
+  2: 214630.0
+  3: 222466.0
+  4: 227010.0
+  5: 224679.0
+  6: 227347.0
+  7: 241092.0
+  8: 259399.0
+  9: 295579.0
+  10: 479110.0
+amsterdam_multiplier_by_decile:
+  1: 1.0
+  2: 1.0
+  3: 1.0
+  4: 1.0
+  5: 1.0
+  6: 1.0
+  7: 1.0
+  8: 1.4849
+  9: 1.9698
+  10: 2.4548
+amsterdam_anchor:
+  amsterdam:
+    mean_k: 351.4
+    median_k: 33.3
+    period: 2024JJ00
+    region: Groot-Amsterdam (CR)
+  nederland:
+    mean_k: 333.5
+    median_k: 135.5
+    period: 2024JJ00
+    region: Nederland
+  level_multiplier: 1.0536731634182908
+amsterdam_tail_fit:
+  mu: 10.413312675968536
+  sigma: 2.17088358912522
+  p90_wealth_eur: 537891.388271492
+  mean_top_decile_wealth_eur: 2857190.0621344387
+  method: two-moment lognormal fit to Amsterdam mean and median
+  caveat: "Household wealth is not lognormal \u2014 it admits negative values and\
+    \ has a heavier-than-lognormal upper tail. This is a two-moment approximation\
+    \ used because CBS publishes no wealth distribution below gemeente level."
+metadata:
+  source_tables:
+  - 83834NED
+  - 86160NED
+  period: 2024JJ00
+  definition: deployable equity = eigen woning - hypotheekschuld eigen woning + financiele
+    bezittingen. Business assets, other real estate and substantial holdings are excluded
+    as not deployable into a purchase.
+  conditioning: Income decile only. CBS KenmerkenVanHuishoudens is a set of marginals,
+    not a cross-tabulation, so owner-occupier status cannot be crossed with income
+    decile in this table.
+  transfer_assumption: Amsterdam is materially more skewed (mean/median 10.55 vs 2.46
+    nationally), so a pure level shift of the national shape understates its top tail.
+    The level anchor is applied but is a LOWER BOUND at the top of the market.
+  standing_rule: This function is DERIVED and must never be adjusted to make a market
+    segment clear. Failure of the top segment to clear is a result, not a calibration
+    error.
+  ordering_disclosure: The sensitivity sweep was run before this derivation, so the
+    equity level that clears the top bin was known when this was written. The derivation
+    uses no simulation input, but a reader should weigh the ordering.
+  generated_by: scripts/derive_equity_from_cbs.py
