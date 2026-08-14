@@ -40,13 +40,18 @@ run_clustering.py (this repo)
   - Maps elasticity to clusters (for PROPERTY SEGMENTATION ANALYSIS, not buyer behavior)
   - Outputs: config/elasticity_mapping.yaml
        ↓
+Buyer Archetypes (Week 0, LOCKED)
+  - 8 data-driven archetypes from K-Means on price/size/price_per_m²
+  - 100% market coverage (4,054 properties)
+  - config/buyer_archetypes.yaml (buyer elasticity and behavior)
+       ↓
 Simulation (Weeks 3-5)
   - Uses clustering_features.csv (for property pool valuation)
-  - Uses config/buyer_archetypes.yaml (for buyer elasticity and behavior)
+  - Uses config/buyer_archetypes.yaml (for buyer generation and elasticity)
   - elasticity_mapping.yaml used only for segment-level validation/analysis
 ```
 
-**Important:** elasticity_mapping.yaml is for property segmentation and analysis. Buyer elasticity is defined separately in buyer_archetypes.yaml.
+**Important:** elasticity_mapping.yaml is for property segmentation (analysis). Buyer elasticity is defined separately in buyer_archetypes.yaml (simulation behavior).
 
 **Files in this repo:**
 - `data/df_preprocessed_ca6f817b.pkl` - Original cached data (reference)
@@ -55,9 +60,21 @@ Simulation (Weeks 3-5)
 - `scripts/run_clustering.py` - Clustering + elasticity mapping script
 - `config/elasticity_mapping.yaml` - Locked elasticity values
 
-## Design
+## Design & Buyer Archetypes
 
-See [docs/DESIGN.md](docs/DESIGN.md) for detailed architecture, system components, elasticity flow, buyer archetypes, and locked assumptions.
+See [docs/DESIGN.md](docs/DESIGN.md) for detailed architecture, system components, elasticity flow, and locked assumptions.
+
+**8 Buyer Archetypes** (locked, data-driven from 4,054 properties):
+1. Space-Seekers Suburban (€349-475k, -1.00 elasticity, 80m²)
+2. Location-Seekers Central (€400-552k, -0.35 elasticity, 49m²)
+3. Balanced Buyers (€400-552k, -0.70 elasticity, 62m²)
+4. Family Suburban (€652-860k, -0.80 elasticity, 106m²)
+5. Urban Professionals (€790-1,025k, -0.35 elasticity, 92m²)
+6. Luxury Large (€1.275-1.65M, -0.45 elasticity, 156m²)
+7. Luxury Premium (€2.35-3.075M, -0.35 elasticity, 210m²)
+8. Ultra-Luxury Estate (€4.41-6.25M, -0.25 elasticity, 352m²)
+
+Full details: [`config/buyer_archetypes.yaml`](config/buyer_archetypes.yaml)
 
 ## Architecture
 
@@ -125,8 +142,10 @@ house-price-pricing-optimization/
 ✅ Clustering features extraction (4,054 properties)
 ✅ K-Means clustering (8 property segments)
 ✅ Elasticity mapping to clusters (for property segmentation analysis)
-✅ Architecture design (buyer archetypes, elasticity flow, assumptions locked)
+✅ Buyer archetypes (8 data-driven types, 100% market coverage, elasticity locked)
+✅ Architecture design (system components, elasticity flow, assumptions locked)
 ✅ Design doc (docs/DESIGN.md)
+✅ Buyer archetypes config (config/buyer_archetypes.yaml)
 
 ## Week 1: Foundation (Aug 1-15)
 

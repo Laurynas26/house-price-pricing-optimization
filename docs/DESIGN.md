@@ -40,13 +40,22 @@ Buyers are generated from archetypes (Luxury Central, Mid-Urban, Budget, etc.), 
 
 ## 5. Buyer Archetypes
 
-| Buyer Type | Budget | Elasticity | Size Pref | Location | Example | % |
+**8 data-driven archetypes identified from K-Means clustering on 4,054 properties. See [`config/buyer_archetypes.yaml`](../config/buyer_archetypes.yaml) for full details.**
+
+Archetypes segmented by **primary buyer motivation** (what they optimize for):
+
+| Archetype | Budget | Elasticity | Typical Size | Price/m² | Example | % |
 |---|---|---|---|---|---|---|
-| Luxury Central | €800k+ | -0.35 | Small (30-50m²) | City center | Penthouse, Grachtengordel | 12% |
-| Luxury Spacious | €800k+ | -0.35 | Large (150m²+) | Suburb/Gooi | Villa with garden | 18% |
-| Mid-Urban | €400-600k | -0.70 | Medium (60-100m²) | City/Canal | Apartment near metro | 30% |
-| Mid-Suburban | €400-600k | -0.70 | Medium (100-150m²) | Suburb | Family home | 25% |
-| Budget | €150-300k | -1.00 | Any | Flexible | Affordable unit | 15% |
+| **Space-Seekers Suburban** | €349-475k | -1.00 | 80m² | €5.1k/m² | 3-bed house, Amstelveen | 15.6% |
+| **Location-Seekers Central** | €400-552k | -0.35 | 49m² | €9.4k/m² | Studio, Grachtengordel | 22.3% |
+| **Balanced Buyers** | €400-552k | -0.70 | 62m² | €7.9k/m² | 1-2 bed, Oud-West | 29.0% |
+| **Family Suburban** | €652-860k | -0.80 | 106m² | €7.0k/m² | 3-4 bed house, Buitenveldert | 12.7% |
+| **Urban Professionals** | €790-1,025k | -0.35 | 92m² | €9.5k/m² | 2-bed apartment, De Pijp | 13.2% |
+| **Luxury Large** | €1.275-1.65M | -0.45 | 156m² | €9.0k/m² | Townhouse, Prinsengracht | 5.5% |
+| **Luxury Premium** | €2.35-3.075M | -0.35 | 210m² | €13.0k/m² | Palace, Herengracht | 1.2% |
+| **Ultra-Luxury Estate** | €4.41-6.25M | -0.25 | 352m² | €15.9k/m² | Penthouse/Mansion, exclusive | 0.5% |
+
+**Key insight:** Elasticity correlates with price/m². High price/m² buyers (location-driven) are less price-sensitive (low elasticity). Low price/m² buyers (space/budget-driven) are more price-sensitive (high elasticity).
 
 ---
 

@@ -1,0 +1,84 @@
+# Location zones for the Amsterdam property pool.
+#
+# WHY THIS FILE EXISTS
+# --------------------
+# The original buyer archetype config expressed location preferences as free-text
+# labels ("grachtengordel", "city_center", "amstelveen", "near_metro"). None of those
+# strings exist anywhere in the data, so the preference filters could not be evaluated
+# at all. Worse, three archetypes listed Amstelveen / Diemen / Weesp as their PREFERRED
+# locations, and the pool contains zero properties there — every listing is Amsterdam.
+#
+# This file replaces free text with a mapping the data can actually support: PC4
+# (first four digits of the Dutch postal code) -> Amsterdam stadsdeel.
+#
+# PROVENANCE
+# ----------
+# PC4 -> stadsdeel is the standard Dutch administrative mapping, not something derived
+# from this dataset. It is externally verifiable and does not encode any price
+# information, which matters: assigning zones by observed price would make any later
+# finding about "location premium" circular.
+#
+# Coverage: all 71 PC4 areas present in the 4,054-property pool are assigned.
+# No property falls through to an "other" bucket.
+#
+# SANITY CHECK (median price/m2 by PC4, from the pool — recorded, NOT used to build
+# the mapping): 1071 Oud-Zuid / Museumkwartier is the most expensive area at
+# EUR 11.0k/m2 and 1108 Bijlmer the cheapest at EUR 4.1k/m2, which is the correct
+# real-world ordering for Amsterdam. The mapping is consistent with the market
+# without having been fitted to it.
+
+zones:
+  centrum:
+    name: "Centrum"
+    pc4: [1011, 1012, 1015, 1016, 1017, 1018]
+    description: "Historic core: Burgwallen, Jordaan, Grachtengordel, Plantage, Weesperbuurt"
+
+  west:
+    name: "West"
+    pc4: [1013, 1014, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058, 1059]
+    description: "Westerpark, Houthavens, Oud-West, Bos en Lommer, De Baarsjes"
+
+  nieuw_west:
+    name: "Nieuw-West"
+    pc4: [1043, 1060, 1061, 1062, 1063, 1064, 1065, 1066, 1067, 1068, 1069]
+    description: "Slotervaart, Osdorp, Geuzenveld, Slotermeer, Sloterdijk"
+
+  noord:
+    name: "Noord"
+    pc4: [1021, 1022, 1023, 1024, 1025, 1028, 1031, 1032, 1033, 1034, 1035, 1036]
+    description: "Across the IJ: Buiksloterham, NDSM, Nieuwendam, Banne"
+
+  zuid:
+    name: "Zuid"
+    pc4: [1071, 1072, 1073, 1074, 1075, 1076, 1077, 1078, 1079, 1081, 1082, 1083]
+    description: "Oud-Zuid, Museumkwartier, De Pijp, Rivierenbuurt, Buitenveldert, Zuidas"
+
+  oost:
+    name: "Oost"
+    pc4: [1019, 1086, 1087, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098]
+    description: "Oostelijk Havengebied, IJburg, Indische Buurt, Oosterparkbuurt, Watergraafsmeer"
+
+  zuidoost:
+    name: "Zuidoost"
+    pc4: [1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108]
+    description: "Bijlmer, Gaasperdam, Amsterdamse Poort"
+
+# Sub-zone flag for the genuinely distinct premium micro-market inside Centrum.
+# Kept separate from `zones` because it overlaps them rather than partitioning.
+canal_belt_pc4: [1015, 1016, 1017]
+
+metadata:
+  source: "Dutch PC4 postal code -> Amsterdam stadsdeel (standard administrative mapping)"
+  pc4_areas_covered: 71
+  properties_covered: 4054
+  fitted_to_price: false
+  notes: |
+    Zones are administrative, not behavioural. They say where a property is, not who
+    wants it. Any claim that a zone attracts a particular kind of buyer is an
+    assumption layered on top of this file, and should be labelled as one.
+
+    The pool is Amsterdam-only. Suburban commuter towns (Amstelveen, Diemen, Weesp)
+    are absent from the data entirely, so no archetype may filter on them. Where a
+    "suburban" preference is wanted, the peripheral Amsterdam stadsdelen
+    (nieuw_west, noord, zuidoost) are the closest thing the data supports, and that
+    substitution must be stated rather than silently assumed.
