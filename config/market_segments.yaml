@@ -1,0 +1,154 @@
+market_segments:
+  segment_1:
+    rank: 1
+    n_properties: 214
+    share_percent: 5.28
+    price_median: 300000
+    price_min_bound: 125000
+    price_max_bound: 450000
+    size_median: 33.0
+    size_min_bound: 10.0
+    size_max_bound: 52.0
+    price_per_m2_median: 9141
+    dist_to_centre_km_median: 4.66
+    dominant_zone: oost
+    zone_mix:
+      oost: 39.7
+      nieuw_west: 21.5
+      noord: 13.1
+  segment_2:
+    rank: 2
+    n_properties: 779
+    share_percent: 19.22
+    price_median: 425000
+    price_min_bound: 277037
+    price_max_bound: 580000
+    size_median: 49.0
+    size_min_bound: 28.0
+    size_max_bound: 68.0
+    price_per_m2_median: 8888
+    dist_to_centre_km_median: 2.32
+    dominant_zone: west
+    zone_mix:
+      west: 46.7
+      centrum: 20.4
+      zuid: 13.2
+  segment_3:
+    rank: 3
+    n_properties: 508
+    share_percent: 12.53
+    price_median: 430000
+    price_min_bound: 225000
+    price_max_bound: 800000
+    size_median: 81.0
+    size_min_bound: 37.0
+    size_max_bound: 166.0
+    price_per_m2_median: 5416
+    dist_to_centre_km_median: 7.73
+    dominant_zone: zuidoost
+    zone_mix:
+      zuidoost: 64.6
+      nieuw_west: 25.2
+      oost: 10.0
+  segment_4:
+    rank: 4
+    n_properties: 683
+    share_percent: 16.85
+    price_median: 475000
+    price_min_bound: 295000
+    price_max_bound: 710000
+    size_median: 65.0
+    size_min_bound: 44.0
+    size_max_bound: 102.0
+    price_per_m2_median: 7420
+    dist_to_centre_km_median: 4.63
+    dominant_zone: nieuw_west
+    zone_mix:
+      nieuw_west: 32.2
+      noord: 23.4
+      oost: 20.8
+  segment_5:
+    rank: 5
+    n_properties: 751
+    share_percent: 18.52
+    price_median: 640000
+    price_min_bound: 350000
+    price_max_bound: 1095000
+    size_median: 74.0
+    size_min_bound: 51.0
+    size_max_bound: 130.0
+    price_per_m2_median: 8823
+    dist_to_centre_km_median: 2.09
+    dominant_zone: centrum
+    zone_mix:
+      centrum: 33.0
+      west: 30.5
+      zuid: 16.8
+  segment_6:
+    rank: 6
+    n_properties: 571
+    share_percent: 14.08
+    price_median: 775000
+    price_min_bound: 440000
+    price_max_bound: 1500000
+    size_median: 98.0
+    size_min_bound: 73.0
+    size_max_bound: 176.0
+    price_per_m2_median: 8010
+    dist_to_centre_km_median: 4.3
+    dominant_zone: oost
+    zone_mix:
+      oost: 37.5
+      zuid: 21.0
+      nieuw_west: 19.3
+  segment_7:
+    rank: 7
+    n_properties: 438
+    share_percent: 10.8
+    price_median: 1150000
+    price_min_bound: 745000
+    price_max_bound: 2400000
+    size_median: 128.0
+    size_min_bound: 81.0
+    size_max_bound: 237.0
+    price_per_m2_median: 9132
+    dist_to_centre_km_median: 2.01
+    dominant_zone: centrum
+    zone_mix:
+      centrum: 38.1
+      zuid: 28.3
+      west: 19.4
+  segment_8:
+    rank: 8
+    n_properties: 110
+    share_percent: 2.71
+    price_median: 2400000
+    price_min_bound: 1450000
+    price_max_bound: 8800000
+    size_median: 219.5
+    size_min_bound: 148.0
+    size_max_bound: 500.0
+    price_per_m2_median: 11093
+    dist_to_centre_km_median: 2.0
+    dominant_zone: zuid
+    zone_mix:
+      zuid: 45.5
+      centrum: 32.7
+      west: 17.3
+metadata:
+  k: 8
+  features:
+  - log_price
+  - log_size
+  - dist_to_centre_km
+  bound_percentiles:
+  - 0
+  - 100
+  seed: 42
+  n_properties: 4054
+  coverage_percent: 100.0
+  generated_by: scripts/build_segmentation.py
+  notes: These are PROPERTY segments. Each is later paired with a buyer population
+    that targets it, but the segmentation itself is derived from the property pool
+    and nothing else. Any statement that a segment's buyers behave a certain way is
+    an assumption layered on top, not a result of this clustering.
